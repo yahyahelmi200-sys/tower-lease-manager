@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tower Lease Manager</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #f5f4ef;
+      --sidebar:      #1c1c20;
+      --sidebar-hover:#26262c;
+      --sidebar-text: #9898a6;
+      --card:         #ffffff;
+      --border:       #e8e5dc;
+      --text:         #1c1c20;
+      --muted:        #76756e;
+      --primary:      #4a6cf7;
+      --primary-bg:   #eef0ff;
+      --green:        #1a864a;
+      --green-bg:     #e6f5ee;
+      --amber:        #b06c00;
+      --amber-bg:     #fff3da;
+      --red:          #c53232;
+      --red-bg:       #fde8e8;
+      --shadow:       0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+      --shadow-md:    0 4px 16px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    /* ── Sidebar ─────────────────────────────────────────── */
+
+    #sidebar {
+      width: 230px;
+      min-height: 100vh;
+      background: var(--sidebar);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .sidebar-brand {
+      padding: 22px 18px 18px;
+    }
+    .brand-icon {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 2px;
+    }
+    .brand-icon svg { color: #7c9ef8; flex-shrink: 0; }
+    .brand-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #ececf0;
+      letter-spacing: -.01em;
+    }
+    .brand-sub {
+      font-size: 11px;
+      color: var(--sidebar-text);
+      padding-left: 29px;
+    }
+
+    .sidebar-divider {
+      height: 1px;
+      background: #2a2a32;
+      margin: 0 18px;
+    }
+
+    .sidebar-nav {
+      padding: 14px 10px;
+      flex: 1;
+    }
+
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--sidebar-text);
+      font-size: 13.5px;
+      font-weight: 500;
+      margin-bottom: 1px;
+      transition: background .12s, color .12s;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: .7; }
+    .nav-item:hover { background: var(--sidebar-hover); color: #d4d4de; }
+    .nav-item:hover svg { opacity: 1; }
+    .nav-item.active { background: #2d2d3a; color: #a8b8fb; }
+    .nav-item.active svg { opacity: 1; color: #a8b8fb; }
+
+    .sidebar-bottom {
+      padding: 14px 18px;
+      border-top: 1px solid #2a2a32;
+    }
+    .sidebar-bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .sidebar-bottom span {
+      font-size: 11px;
+      color: #4a4a58;
+    }
+    .sample-btn {
+      font-size: 11px;
+      color: #6b7cf6;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 3px 0;
+      font-family: inherit;
+      font-weight: 500;
+    }
+    .sample-btn:hover { color: #a8b8fb; }
+
+    /* ── Main ────────────────────────────────────────────── */
+
+    #main {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow-x: hidden;
+    }
+
+    .topbar {
+      background: var(--bg);
+      padding: 20px 28px 0;
+    }
+
+    .topbar-inner {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .topbar-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -.02em;
+      color: var(--text);
+    }
+    .topbar-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .topbar-date {
+      font-size: 12.5px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .content { padding: 24px 28px 40px; }
+
+    /* ── Views ─────────────────────────────────────────── */
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    /* ── Summary bars (dashboard stats) ─────────────────── */
+
+    .summary-section {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      margin-bottom: 10px;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .summary-label {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: var(--muted);
+      min-width: 120px;
+    }
+    .summary-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-lease  { background: var(--primary); }
+    .dot-permit { background: #f59e0b; }
+
+    .summary-stats {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .summary-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: #f7f6f2;
+      border: 1px solid var(--border);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--muted);
+    }
+    .summary-chip strong {
+      font-weight: 700;
+      color: var(--text);
+      font-size: 14px;
+    }
+    .summary-chip.chip-green strong { color: var(--green); }
+    .summary-chip.chip-amber strong { color: var(--amber); }
+    .summary-chip.chip-red   strong { color: var(--red); }
+
+    .summary-divider {
+      height: 1px;
+      background: var(--border);
+      margin: 12px 0;
+    }
+
+    /* ── Alert feed ──────────────────────────────────────── */
+
+    .feed-header {
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      margin: 22px 0 12px;
+    }
+    .feed-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .feed-header .feed-count {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    #alerts-feed { display: flex; flex-direction: column; gap: 8px; }
+
+    .alert-card {
+      display: flex;
+      align-items: center;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: box-shadow .15s;
+    }
+    .alert-card:hover { box-shadow: var(--shadow-md); }
+
+    .alert-stripe {
+      width: 4px;
+      align-self: stretch;
+      flex-shrink: 0;
+    }
+    .stripe-red   { background: var(--red); }
+    .stripe-amber { background: #f59e0b; }
+
+    .alert-body {
+      flex: 1;
+      padding: 12px 14px;
+      min-width: 0;
+    }
+    .alert-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 3px;
+    }
+    .alert-type-pill {
+      font-size: 10.5px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      flex-shrink: 0;
+    }
+    .pill-lease  { background: var(--primary-bg); color: var(--primary); }
+    .pill-permit { background: #fff3da; color: #b06000; }
+
+    .alert-title {
+      font-size: 13.5px;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .alert-detail {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .alert-meta {
+      padding: 12px 16px;
+      text-align: right;
+      flex-shrink: 0;
+    }
+    .alert-deadline-label {
+      font-size: 11px;
+      color: var(--muted);
+      display: block;
+    }
+    .alert-deadline-date {
+      font-size: 13px;
+      font-weight: 600;
+      display: block;
+    }
+
+    .alert-status-col {
+      padding: 12px 16px 12px 0;
+      flex-shrink: 0;
+    }
+
+    .all-clear {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 36px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+    }
+    .all-clear-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--green-bg);
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 10px;
+      color: var(--green);
+    }
+    .all-clear p {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 3px;
+    }
+    .all-clear small {
+      font-size: 12.5px;
+      color: var(--muted);
+    }
+
+    /* ── Section header (leases/permits pages) ─────────── */
+
+    .page-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .page-header h2 {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: -.01em;
+    }
+    .page-header p {
+      font-size: 12.5px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+
+    /* ── Table ───────────────────────────────────────────── */
+
+    .table-wrap {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    table { width: 100%; border-collapse: collapse; }
+
+    thead { background: #faf9f5; }
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    td {
+      padding: 13px 16px;
+      border-bottom: 1px solid #f0ede4;
+      vertical-align: middle;
+      font-size: 13.5px;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr:hover td { background: #faf9f5; }
+
+    .cell-primary { font-weight: 600; }
+    .cell-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 1px;
+    }
+    .cell-mono {
+      font-family: 'SFMono-Regular', Consolas, monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    /* ── Badges ──────────────────────────────────────────── */
+
+    .badge {
+      display: inline-block;
+      padding: 3px 8px;
+      border-radius: 5px;
+      font-size: 11.5px;
+      font-weight: 600;
+    }
+    .badge-green  { background: var(--green-bg);   color: var(--green); }
+    .badge-amber  { background: var(--amber-bg);   color: var(--amber); }
+    .badge-red    { background: var(--red-bg);     color: var(--red);   }
+    .badge-blue   { background: var(--primary-bg); color: var(--primary); }
+    .badge-gray   { background: #f0ede4; color: var(--muted); }
+
+    /* ── Buttons ─────────────────────────────────────────── */
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      font-family: inherit;
+      transition: opacity .12s, box-shadow .12s;
+    }
+    .btn:hover { opacity: .88; }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      box-shadow: 0 1px 3px rgba(74,108,247,.3);
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { background: #f7f6f2; color: var(--text); }
+    .btn-danger-ghost {
+      background: transparent;
+      color: var(--red);
+      border: 1px solid #f5c6c6;
+    }
+    .btn-danger-ghost:hover { background: var(--red-bg); }
+    .btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 6px; }
+
+    .action-group { display: flex; gap: 6px; }
+
+    /* ── Modal ───────────────────────────────────────────── */
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,10,14,.45);
+      z-index: 100;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 64px;
+      backdrop-filter: blur(2px);
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal {
+      background: var(--card);
+      border-radius: 14px;
+      width: 560px;
+      max-width: 95vw;
+      max-height: 85vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 64px rgba(0,0,0,.18);
+      border: 1px solid var(--border);
+    }
+
+    .modal-header {
+      padding: 20px 22px 16px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+    }
+    .modal-header h3 { font-size: 16px; font-weight: 700; letter-spacing: -.01em; }
+    .modal-header p { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+
+    .modal-close {
+      background: #f0ede4;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      line-height: 1;
+    }
+    .modal-close:hover { background: #e6e3d8; color: var(--text); }
+
+    .modal-body { padding: 20px 22px; }
+
+    .modal-footer {
+      padding: 14px 22px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      background: #faf9f5;
+      border-radius: 0 0 14px 14px;
+    }
+
+    /* ── Form ────────────────────────────────────────────── */
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    input, select, textarea {
+      padding: 8px 11px;
+      border: 1px solid #dddad2;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-family: inherit;
+      color: var(--text);
+      background: white;
+      outline: none;
+      width: 100%;
+      transition: border-color .12s, box-shadow .12s;
+    }
+    input::placeholder, textarea::placeholder { color: #bbb8af; }
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(74,108,247,.1);
+    }
+    textarea { resize: vertical; min-height: 68px; }
+
+    /* ── Empty state ─────────────────────────────────────── */
+
+    .empty-row td {
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 13.5px;
+    }
+
+    /* ── Responsive ──────────────────────────────────────── */
+    @media (max-width: 860px) {
+      #sidebar { width: 56px; }
+      .brand-name, .brand-sub, .nav-item span, .sidebar-bottom { display: none; }
+      .nav-item { justify-content: center; padding: 10px; }
+      .topbar, .content { padding-left: 16px; padding-right: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── Sidebar ──────────────────────────────────────── -->
+<nav id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <path d="M9 1L9 5M9 5L6 9M9 5L12 9M6 9L3 13M6 9H12M12 9L15 13M3 13H6M15 13H12M6 13V17M12 13V17" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <span class="brand-name">TowerLease</span>
+    </div>
+    <div class="brand-sub">Infrastructure Manager</div>
+  </div>
+
+  <div class="sidebar-divider"></div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-item active" onclick="showView('dashboard')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <rect x="1.5" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="9" y="1.5" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="1.5" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+        <rect x="9" y="9" width="5.5" height="5.5" rx="1.5" stroke="currentColor" stroke-width="1.5"/>
+      </svg>
+      <span>Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showView('leases')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <path d="M3 2.5A1.5 1.5 0 014.5 1h5L13 4.5V13.5A1.5 1.5 0 0111.5 15h-7A1.5 1.5 0 013 13.5v-11z" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M9.5 1v3.5H13" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M5.5 7.5h5M5.5 10h3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>Land Leases</span>
+    </div>
+    <div class="nav-item" onclick="showView('permits')">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+        <circle cx="8" cy="6" r="3" stroke="currentColor" stroke-width="1.5"/>
+        <path d="M2.5 14.5h11M5 14.5v-2a3 3 0 016 0v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <span>Permits</span>
+    </div>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <div class="sidebar-bottom-row">
+      <span>v1.0.0</span>
+      <button class="sample-btn" onclick="runSeed()">Load sample data</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ── Main ─────────────────────────────────────────── -->
+<div id="main">
+
+  <!-- ── Dashboard ── -->
+  <div id="view-dashboard" class="view active">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div>
+          <div class="topbar-title" id="page-title">Overview</div>
+          <div class="topbar-sub" id="topbar-greeting">Here's what needs your attention today.</div>
+        </div>
+        <div class="topbar-date" id="today-label">—</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- Summary bars -->
+      <div class="summary-section">
+        <div class="summary-row">
+          <div class="summary-label">
+            <span class="summary-dot dot-lease"></span>
+            Land Leases
+          </div>
+          <div class="summary-stats">
+            <div class="summary-chip"><strong id="stat-leases-total">—</strong> total</div>
+            <div class="summary-chip chip-green"><strong id="stat-leases-active">—</strong> active</div>
+            <div class="summary-chip chip-amber"><strong id="stat-leases-expiring">—</strong> expiring</div>
+            <div class="summary-chip chip-red"><strong id="stat-leases-expired">—</strong> expired</div>
+          </div>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-row">
+          <div class="summary-label">
+            <span class="summary-dot dot-permit"></span>
+            Permits
+          </div>
+          <div class="summary-stats">
+            <div class="summary-chip"><strong id="stat-permits-total">—</strong> total</div>
+            <div class="summary-chip chip-green"><strong id="stat-permits-active">—</strong> active</div>
+            <div class="summary-chip chip-amber"><strong id="stat-permits-expiring">—</strong> expiring</div>
+            <div class="summary-chip chip-red"><strong id="stat-permits-expired">—</strong> expired</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Alert feed -->
+      <div class="feed-header">
+        <h2>Needs attention</h2>
+        <span class="feed-count" id="alert-count"></span>
+      </div>
+      <div id="alerts-feed"></div>
+
+    </div>
+  </div>
+
+  <!-- ── Land Leases ── -->
+  <div id="view-leases" class="view">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div>
+          <div class="topbar-title">Land Leases</div>
+          <div class="topbar-sub">Track and manage tower land lease agreements.</div>
+        </div>
+        <button class="btn btn-primary" onclick="openLeaseModal()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Lease
+        </button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tower</th>
+              <th>Location</th>
+              <th>Landlord</th>
+              <th>Monthly Rent</th>
+              <th>Lease Ends</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="leases-body">
+            <tr class="empty-row"><td colspan="7">Loading leases...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Permits ── -->
+  <div id="view-permits" class="view">
+    <div class="topbar">
+      <div class="topbar-inner">
+        <div>
+          <div class="topbar-title">Permits</div>
+          <div class="topbar-sub">Monitor permit validity and renewal deadlines.</div>
+        </div>
+        <button class="btn btn-primary" onclick="openPermitModal()">
+          <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+            <path d="M6.5 1v11M1 6.5h11" stroke="white" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          Add Permit
+        </button>
+      </div>
+    </div>
+    <div class="content">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Tower</th>
+              <th>Permit No.</th>
+              <th>Type</th>
+              <th>Issuing Authority</th>
+              <th>Expires On</th>
+              <th>Status</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="permits-body">
+            <tr class="empty-row"><td colspan="7">Loading permits...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- ── Lease Modal ───────────────────────────────────── -->
+<div class="modal-overlay" id="lease-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="lease-modal-title">Add a new lease</h3>
+        <p>Fill in the lease agreement details below.</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('lease-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <input type="hidden" id="lease-id" />
+        <div class="form-group">
+          <label>Tower ID</label>
+          <input type="text" id="lease-tower_id" placeholder="e.g. TWR-001" />
+        </div>
+        <div class="form-group">
+          <label>Tower Name</label>
+          <input type="text" id="lease-tower_name" placeholder="e.g. KL Central Tower" />
+        </div>
+        <div class="form-group full">
+          <label>Location</label>
+          <input type="text" id="lease-location" placeholder="e.g. Jalan Ampang, Kuala Lumpur" />
+        </div>
+        <div class="form-group">
+          <label>Landlord Name</label>
+          <input type="text" id="lease-landlord_name" placeholder="Full name" />
+        </div>
+        <div class="form-group">
+          <label>Landlord Contact</label>
+          <input type="text" id="lease-landlord_contact" placeholder="Email or phone number" />
+        </div>
+        <div class="form-group">
+          <label>Lease Start</label>
+          <input type="date" id="lease-lease_start_date" />
+        </div>
+        <div class="form-group">
+          <label>Lease End</label>
+          <input type="date" id="lease-lease_end_date" />
+        </div>
+        <div class="form-group">
+          <label>Monthly Rent (RM)</label>
+          <input type="number" id="lease-monthly_rent" placeholder="e.g. 2500" step="0.01" />
+        </div>
+        <div class="form-group">
+          <label>Escalation Rate (% / year)</label>
+          <input type="number" id="lease-escalation_rate" placeholder="e.g. 3.0" step="0.1" />
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="lease-notes" placeholder="Anything worth remembering about this lease..."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('lease-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitLease()">Save lease</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Permit Modal ───────────────────────────────────── -->
+<div class="modal-overlay" id="permit-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <div>
+        <h3 id="permit-modal-title">Add a new permit</h3>
+        <p>Fill in the permit details and expiry date.</p>
+      </div>
+      <button class="modal-close" onclick="closeModal('permit-modal')">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <input type="hidden" id="permit-id" />
+        <div class="form-group">
+          <label>Tower ID</label>
+          <input type="text" id="permit-tower_id" placeholder="e.g. TWR-001" />
+        </div>
+        <div class="form-group">
+          <label>Tower Name</label>
+          <input type="text" id="permit-tower_name" placeholder="e.g. KL Central Tower" />
+        </div>
+        <div class="form-group">
+          <label>Permit Number</label>
+          <input type="text" id="permit-permit_number" placeholder="e.g. DBKL/ANT/2024/001" />
+        </div>
+        <div class="form-group">
+          <label>Permit Type</label>
+          <select id="permit-permit_type">
+            <option value="">Select a type...</option>
+            <option>Antenna Installation</option>
+            <option>Building Permit</option>
+            <option>Zoning Approval</option>
+            <option>Frequency License</option>
+            <option>Environmental Clearance</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Date Issued</label>
+          <input type="date" id="permit-issued_date" />
+        </div>
+        <div class="form-group">
+          <label>Expiry Date</label>
+          <input type="date" id="permit-expiry_date" />
+        </div>
+        <div class="form-group full">
+          <label>Issuing Authority</label>
+          <input type="text" id="permit-issuing_authority" placeholder="e.g. DBKL, MCMC, Majlis Bandaraya..." />
+        </div>
+        <div class="form-group full">
+          <label>Notes</label>
+          <textarea id="permit-notes" placeholder="Renewal steps, contact person, etc."></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('permit-modal')">Cancel</button>
+      <button class="btn btn-primary" onclick="submitPermit()">Save permit</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Init ───────────────────────────────────────────────
+
+  const _today = new Date();
+  const _todayStr = _today.toDateString();
+  const hour = _today.getHours();
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+
+  document.getElementById('today-label').textContent =
+    _today.toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  // ── Helpers ────────────────────────────────────────────
+
+  function daysLeft(dateStr) {
+    return Math.round((new Date(dateStr) - new Date(_todayStr)) / 86400000);
+  }
+
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d + 'T00:00:00').toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+  }
+
+  function fmtMoney(n) {
+    return 'RM\u00a0' + Number(n).toLocaleString('en-MY', { minimumFractionDigits: 2 });
+  }
+
+  function statusBadge(days) {
+    if (days <= 0)  return `<span class="badge badge-red">Expired</span>`;
+    if (days <= 30) return `<span class="badge badge-red">Urgent &mdash; ${days}d left</span>`;
+    if (days <= 90) return `<span class="badge badge-amber">${days} days left</span>`;
+    return `<span class="badge badge-green">Active</span>`;
+  }
+
+  // ── Navigation ─────────────────────────────────────────
+
+  function showView(name) {
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    document.querySelectorAll('.nav-item')[['dashboard','leases','permits'].indexOf(name)].classList.add('active');
+    if (name === 'dashboard') loadDashboard();
+    if (name === 'leases')    loadLeases();
+    if (name === 'permits')   loadPermits();
+  }
+
+  // ── Dashboard ──────────────────────────────────────────
+
+  async function loadDashboard() {
+    const data = await fetch('/api/dashboard').then(r => r.json());
+
+    // Stats
+    document.getElementById('stat-leases-total').textContent    = data.leases.total;
+    document.getElementById('stat-leases-active').textContent   = data.leases.active;
+    document.getElementById('stat-leases-expiring').textContent = data.leases.expiring_soon;
+    document.getElementById('stat-leases-expired').textContent  = data.leases.expired;
+    document.getElementById('stat-permits-total').textContent   = data.permits.total;
+    document.getElementById('stat-permits-active').textContent  = data.permits.active;
+    document.getElementById('stat-permits-expiring').textContent= data.permits.expiring_soon;
+    document.getElementById('stat-permits-expired').textContent = data.permits.expired;
+
+    // Greeting
+    const urgent = data.alerts.filter(a => a.days_left <= 30).length;
+    const greetText = urgent > 0
+      ? `${greeting}. You have ${urgent} urgent item${urgent > 1 ? 's' : ''} that need immediate attention.`
+      : `${greeting}. Here's what needs your attention.`;
+    document.getElementById('topbar-greeting').textContent = greetText;
+
+    // Alert feed
+    const feed = document.getElementById('alerts-feed');
+    const countEl = document.getElementById('alert-count');
+
+    if (!data.alerts.length) {
+      countEl.textContent = '';
+      feed.innerHTML = `
+        <div class="all-clear">
+          <div class="all-clear-icon">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3.5 9l4 4 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p>You're all clear!</p>
+          <small>No leases or permits expiring within the next 90 days.</small>
+        </div>`;
+      return;
+    }
+
+    countEl.textContent = data.alerts.length + ' item' + (data.alerts.length > 1 ? 's' : '');
+
+    feed.innerHTML = data.alerts.map(a => {
+      const d = a.days_left;
+      const isRed = d <= 30;
+      const stripeClass = isRed ? 'stripe-red' : 'stripe-amber';
+      const pillClass   = a.type === 'Lease' ? 'pill-lease' : 'pill-permit';
+      const deadlineColor = d <= 0 ? `color:var(--red);` : d <= 30 ? `color:var(--red);` : '';
+      const expiredNote = d <= 0 ? ` <span style="color:var(--red);font-size:11px;font-weight:600">· EXPIRED</span>` : '';
+
+      return `
+      <div class="alert-card">
+        <div class="alert-stripe ${stripeClass}"></div>
+        <div class="alert-body">
+          <div class="alert-top">
+            <span class="alert-type-pill ${pillClass}">${a.type}</span>
+            <span class="alert-title">${a.tower_id} &mdash; ${a.name}${expiredNote}</span>
+          </div>
+          <div class="alert-detail">${a.detail} &middot; ${a.contact}</div>
+        </div>
+        <div class="alert-meta">
+          <span class="alert-deadline-label">Deadline</span>
+          <span class="alert-deadline-date" style="${deadlineColor}">${fmtDate(a.deadline)}</span>
+        </div>
+        <div class="alert-status-col">${statusBadge(d)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  // ── Leases ─────────────────────────────────────────────
+
+  async function loadLeases() {
+    const leases = await fetch('/api/leases').then(r => r.json());
+    const tbody = document.getElementById('leases-body');
+    if (!leases.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No leases added yet &mdash; click "Add Lease" to get started.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = leases.map(l => {
+      const d = daysLeft(l.lease_end_date);
+      return `<tr>
+        <td>
+          <div class="cell-primary">${l.tower_name}</div>
+          <div class="cell-sub">${l.tower_id}</div>
+        </td>
+        <td style="color:var(--muted);font-size:13px">${l.location}</td>
+        <td>
+          <div class="cell-primary">${l.landlord_name}</div>
+          <div class="cell-sub">${l.landlord_contact}</div>
+        </td>
+        <td>
+          <div class="cell-primary">${fmtMoney(l.monthly_rent)}</div>
+          <div class="cell-sub">${l.escalation_rate}% escalation / yr</div>
+        </td>
+        <td style="white-space:nowrap">${fmtDate(l.lease_end_date)}</td>
+        <td>${statusBadge(d)}</td>
+        <td>
+          <div class="action-group">
+            <button class="btn btn-ghost btn-sm" onclick="editLease(${l.id})">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm" onclick="deleteLease(${l.id})">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openLeaseModal(data = null) {
+    const isEdit = !!data;
+    document.getElementById('lease-modal-title').textContent = isEdit ? 'Edit lease details' : 'Add a new lease';
+    document.querySelector('#lease-modal .modal-header p').textContent =
+      isEdit ? 'Update the lease agreement information.' : 'Fill in the lease agreement details below.';
+    ['id','tower_id','tower_name','location','landlord_name','landlord_contact',
+     'lease_start_date','lease_end_date','monthly_rent','escalation_rate','notes'].forEach(f => {
+      document.getElementById('lease-' + f).value = data ? (data[f] ?? '') : '';
+    });
+    document.getElementById('lease-modal').classList.add('open');
+  }
+
+  async function editLease(id) {
+    const leases = await fetch('/api/leases').then(r => r.json());
+    openLeaseModal(leases.find(l => l.id === id));
+  }
+
+  async function submitLease() {
+    const id = document.getElementById('lease-id').value;
+    const body = {
+      tower_id:         document.getElementById('lease-tower_id').value,
+      tower_name:       document.getElementById('lease-tower_name').value,
+      location:         document.getElementById('lease-location').value,
+      landlord_name:    document.getElementById('lease-landlord_name').value,
+      landlord_contact: document.getElementById('lease-landlord_contact').value,
+      lease_start_date: document.getElementById('lease-lease_start_date').value,
+      lease_end_date:   document.getElementById('lease-lease_end_date').value,
+      monthly_rent:     parseFloat(document.getElementById('lease-monthly_rent').value),
+      escalation_rate:  parseFloat(document.getElementById('lease-escalation_rate').value),
+      notes:            document.getElementById('lease-notes').value,
+    };
+    const url = id ? `/api/leases/${id}` : '/api/leases';
+    await fetch(url, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    closeModal('lease-modal');
+    loadLeases();
+    loadDashboard();
+  }
+
+  async function deleteLease(id) {
+    if (!confirm('Delete this lease? This cannot be undone.')) return;
+    await fetch(`/api/leases/${id}`, { method: 'DELETE' });
+    loadLeases();
+    loadDashboard();
+  }
+
+  // ── Permits ────────────────────────────────────────────
+
+  async function loadPermits() {
+    const permits = await fetch('/api/permits').then(r => r.json());
+    const tbody = document.getElementById('permits-body');
+    if (!permits.length) {
+      tbody.innerHTML = `<tr class="empty-row"><td colspan="7">No permits yet &mdash; click "Add Permit" to get started.</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = permits.map(p => {
+      const d = daysLeft(p.expiry_date);
+      return `<tr>
+        <td>
+          <div class="cell-primary">${p.tower_name}</div>
+          <div class="cell-sub">${p.tower_id}</div>
+        </td>
+        <td class="cell-mono">${p.permit_number}</td>
+        <td><span class="badge badge-gray">${p.permit_type}</span></td>
+        <td style="font-size:13px">${p.issuing_authority}</td>
+        <td style="white-space:nowrap">${fmtDate(p.expiry_date)}</td>
+        <td>${statusBadge(d)}</td>
+        <td>
+          <div class="action-group">
+            <button class="btn btn-ghost btn-sm" onclick="editPermit(${p.id})">Edit</button>
+            <button class="btn btn-danger-ghost btn-sm" onclick="deletePermit(${p.id})">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  function openPermitModal(data = null) {
+    const isEdit = !!data;
+    document.getElementById('permit-modal-title').textContent = isEdit ? 'Edit permit details' : 'Add a new permit';
+    document.querySelector('#permit-modal .modal-header p').textContent =
+      isEdit ? 'Update the permit information below.' : 'Fill in the permit details and expiry date.';
+    ['id','tower_id','tower_name','permit_number','permit_type',
+     'issued_date','expiry_date','issuing_authority','notes'].forEach(f => {
+      document.getElementById('permit-' + f).value = data ? (data[f] ?? '') : '';
+    });
+    document.getElementById('permit-modal').classList.add('open');
+  }
+
+  async function editPermit(id) {
+    const permits = await fetch('/api/permits').then(r => r.json());
+    openPermitModal(permits.find(p => p.id === id));
+  }
+
+  async function submitPermit() {
+    const id = document.getElementById('permit-id').value;
+    const body = {
+      tower_id:          document.getElementById('permit-tower_id').value,
+      tower_name:        document.getElementById('permit-tower_name').value,
+      permit_number:     document.getElementById('permit-permit_number').value,
+      permit_type:       document.getElementById('permit-permit_type').value,
+      issued_date:       document.getElementById('permit-issued_date').value,
+      expiry_date:       document.getElementById('permit-expiry_date').value,
+      issuing_authority: document.getElementById('permit-issuing_authority').value,
+      notes:             document.getElementById('permit-notes').value,
+    };
+    const url = id ? `/api/permits/${id}` : '/api/permits';
+    await fetch(url, { method: id ? 'PUT' : 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(body) });
+    closeModal('permit-modal');
+    loadPermits();
+    loadDashboard();
+  }
+
+  async function deletePermit(id) {
+    if (!confirm('Delete this permit? This cannot be undone.')) return;
+    await fetch(`/api/permits/${id}`, { method: 'DELETE' });
+    loadPermits();
+    loadDashboard();
+  }
+
+  // ── Modal helpers ──────────────────────────────────────
+
+  function closeModal(id) {
+    document.getElementById(id).classList.remove('open');
+  }
+
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', e => {
+      if (e.target === overlay) overlay.classList.remove('open');
+    });
+  });
+
+  // ── Seed ───────────────────────────────────────────────
+
+  async function runSeed() {
+    if (!confirm('This will replace all existing data with sample tower data. Continue?')) return;
+    const res = await fetch('/api/seed', { method: 'POST' });
+    if (res.ok) {
+      loadDashboard();
+      const v = document.querySelector('.view.active');
+      if (v?.id === 'view-leases')  loadLeases();
+      if (v?.id === 'view-permits') loadPermits();
+    }
+  }
+
+  // ── Boot ───────────────────────────────────────────────
+  loadDashboard();
+</script>
+</body>
+</html>

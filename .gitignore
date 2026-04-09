@@ -1,0 +1,15 @@
+node_modules/
+tower_lease.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Python leftovers (not used)
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# OS
+.DS_Store
+Thumbs.db
